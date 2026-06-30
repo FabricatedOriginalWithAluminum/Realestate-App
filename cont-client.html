@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NewGen | Portal client</title>
+  <style>
+    :root{--green:#8dcb39;--blue:#253550;--dark:#1a2538;--grey:#bdc2ca;--black:#282828}*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f9fb;color:var(--black)}a{text-decoration:none;color:inherit}
+    .wrap{width:min(1180px,calc(100% - 48px));margin:0 auto}.page{min-height:100vh;display:grid;grid-template-columns:.9fr 1.1fr;align-items:center;gap:56px;padding:48px 0}.back{display:inline-flex;gap:8px;color:var(--blue);font-size:14px;font-weight:800;margin-bottom:40px}.eyebrow{display:inline-flex;border-radius:6px;background:rgba(141,203,57,.16);color:var(--blue);padding:9px 12px;font-size:14px;font-weight:800;margin-bottom:20px}
+    h1{font-size:clamp(42px,6vw,68px);line-height:1.05;margin:0;color:var(--blue);letter-spacing:0}.lead{font-size:18px;line-height:1.7;color:rgba(40,40,40,.7)}.panel{background:#fff;border:1px solid rgba(189,194,202,.38);border-radius:8px;padding:32px;box-shadow:0 24px 80px rgba(37,53,80,.12)}
+    .tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(37,53,80,.06);border-radius:7px;padding:4px}.tab{height:44px;margin:0;border:0;border-radius:5px;background:transparent;color:var(--blue);font:inherit;font-size:14px;font-weight:900;cursor:pointer}.tab.active{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(37,53,80,.18)}
+    form{margin-top:28px}.hidden{display:none}.label{color:var(--green);font-size:13px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}h2{margin:8px 0 26px;color:var(--blue);font-size:32px}label{display:grid;gap:8px;margin-top:16px;color:var(--blue);font-size:14px;font-weight:800}input{height:48px;border:1px solid rgba(189,194,202,.65);border-radius:6px;padding:0 14px;font:inherit;outline:none}input:focus{border-color:var(--blue)}
+    .submit{margin-top:24px;width:100%;height:48px;border:0;border-radius:6px;background:var(--blue);color:#fff;font-weight:900;font:inherit;cursor:pointer}.submit:disabled{opacity:.6;cursor:wait}.notice{display:none;margin-top:18px;border-radius:6px;padding:14px 16px;font-size:14px;font-weight:800;line-height:1.5}.notice.show{display:block}.notice.error{background:#fff0f0;color:#a32929}.notice.success{background:rgba(141,203,57,.15);color:var(--blue)}
+    @media(max-width:860px){.wrap{width:min(100% - 32px,1180px)}.page{grid-template-columns:1fr;gap:28px;padding:28px 0}.back{margin-bottom:24px}.panel{padding:24px}}
+  </style>
+</head>
+<body>
+<main class="wrap page">
+  <section><a class="back" href="/">&#8592; Inapoi la prezentare</a><div class="eyebrow">Portal securizat NewGen</div><h1>Acceseaza contul tau de client.</h1><p class="lead">Autentifica-te pentru a vedea starea apartamentului sau creeaza un cont folosind codul primit de la dezvoltator.</p></section>
+  <section class="panel">
+    <div class="tabs" role="tablist"><button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true">Autentificare</button><button class="tab" id="registerTab" type="button" role="tab" aria-selected="false">Cont nou</button></div>
+    <form id="loginForm"><div class="label">Portal client</div><h2>Bine ai revenit</h2><label>Email<input name="email" type="email" placeholder="andrei@email.ro" required></label><label>Parola<input name="password" type="password" minlength="8" placeholder="Minimum 8 caractere" required></label><button class="submit" type="submit">Intra in cont</button></form>
+    <form class="hidden" id="registerForm"><div class="label">Portal client</div><h2>Date cont</h2><label>Nume complet<input name="name" placeholder="Popescu Andrei" required></label><label>Email<input name="email" type="email" placeholder="andrei@email.ro" required></label><label>Telefon<input name="phone" placeholder="07xx xxx xxx"></label><label>Parola<input name="password" type="password" minlength="8" placeholder="Minimum 8 caractere" required></label><label>Cod dezvoltator<input name="developerCode" placeholder="TEST_DEV" required></label><button class="submit" type="submit">Creeaza cont</button></form>
+    <div class="notice" id="notice" role="status"></div>
+  </section>
+</main>
+<script>
+  const loginTab=document.getElementById("loginTab"),registerTab=document.getElementById("registerTab"),loginForm=document.getElementById("loginForm"),registerForm=document.getElementById("registerForm"),notice=document.getElementById("notice");
+  function setMode(mode){const login=mode==="login";loginTab.classList.toggle("active",login);registerTab.classList.toggle("active",!login);loginTab.setAttribute("aria-selected",login);registerTab.setAttribute("aria-selected",!login);loginForm.classList.toggle("hidden",!login);registerForm.classList.toggle("hidden",login);notice.className="notice"}
+  loginTab.addEventListener("click",()=>setMode("login"));registerTab.addEventListener("click",()=>setMode("register"));
+  async function submit(form,endpoint){const button=form.querySelector(".submit"),original=button.textContent;button.disabled=true;button.textContent="Se proceseaza...";notice.className="notice";try{const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.fromEntries(new FormData(form).entries()))});const data=await response.json();if(!response.ok)throw new Error(data.message||"A aparut o eroare.");notice.textContent=data.message;notice.className="notice show success";window.location.href=data.redirectTo||"/cont-client-acasa.html"}catch(error){notice.textContent=error.message;notice.className="notice show error";button.disabled=false;button.textContent=original}}
+  loginForm.addEventListener("submit",event=>{event.preventDefault();submit(loginForm,"/api/client-login")});registerForm.addEventListener("submit",event=>{event.preventDefault();submit(registerForm,"/api/client-register")});
+</script>
+</body>
+</html>

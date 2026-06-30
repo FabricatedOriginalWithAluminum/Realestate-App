@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --newgen-green: #8dcb39;
+  --newgen-blue: #253550;
+  --newgen-darkblue: #1a2538;
+  --newgen-grey: #bdc2ca;
+  --newgen-black: #282828;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #ffffff;
+  color: var(--newgen-black);
+}
+
+.font-luxury {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+::selection {
+  background: rgba(141, 203, 57, 0.3);
+}

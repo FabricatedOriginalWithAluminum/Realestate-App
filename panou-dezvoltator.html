@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NewGen | Clienti</title>
+<style>
+:root{--green:#8dcb39;--blue:#253550;--dark:#1a2538;--grey:#bdc2ca;--black:#282828}*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7f9;color:var(--black)}a{text-decoration:none;color:inherit}.wrap{width:min(1220px,calc(100% - 48px));margin:auto}
+header{background:var(--dark);color:#fff}.header{height:78px;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:950}.portal{font-size:13px;font-weight:800;color:rgba(255,255,255,.58)}
+main{padding:42px 0 70px}.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}.eyebrow{color:var(--green);font-size:12px;font-weight:900;letter-spacing:.17em;text-transform:uppercase}h1{margin:8px 0 0;color:var(--blue);font-size:42px;letter-spacing:0}.stats{display:flex;gap:10px}.stat{background:#fff;border:1px solid rgba(189,194,202,.35);border-radius:6px;padding:12px 15px;color:var(--blue);font-size:13px;font-weight:900}.stat.green{background:rgba(141,203,57,.14);border-color:transparent}
+.controls{display:flex;gap:12px;margin-top:30px;padding:16px 0;border-top:1px solid rgba(189,194,202,.5);border-bottom:1px solid rgba(189,194,202,.5)}input,select{height:44px;border:1px solid rgba(189,194,202,.65);border-radius:6px;background:#fff;padding:0 14px;font:inherit;outline:none;color:var(--blue)}input{min-width:260px;flex:1}select{font-weight:800}
+.table{margin-top:24px;background:#fff;border:1px solid rgba(189,194,202,.45);border-radius:7px;overflow:hidden}.head,.row{display:grid;grid-template-columns:1.25fr 1.35fr .7fr .9fr;gap:18px;align-items:center}.head{padding:13px 18px;background:rgba(37,53,80,.055);border-bottom:1px solid rgba(189,194,202,.4);color:var(--blue);font-size:11px;font-weight:900;text-transform:uppercase}.row{padding:18px;border-bottom:1px solid rgba(189,194,202,.3)}.row:last-child{border-bottom:0}.name{color:var(--blue);font-weight:900}.sub{margin-top:5px;color:rgba(40,40,40,.48);font-size:12px}.contact{font-size:14px;font-weight:700;overflow-wrap:anywhere}.badge{display:inline-flex;width:max-content;border-radius:5px;padding:7px 9px;font-size:12px;font-weight:900}.assigned{background:rgba(141,203,57,.15);color:var(--blue)}.unassigned{background:#fff6dc;color:#8a5b00}.apartment{font-size:13px;font-weight:800;color:var(--blue)}.empty,.error{padding:50px 18px;text-align:center;color:rgba(40,40,40,.55)}.error a{display:inline-flex;margin-top:18px;padding:11px 16px;border-radius:6px;background:var(--blue);color:#fff;font-weight:900}
+@media(max-width:760px){.wrap{width:min(100% - 28px,1220px)}.controls{flex-direction:column}input{min-width:0;width:100%}select{width:100%}.head{display:none}.row{grid-template-columns:1fr;gap:13px}.stats{width:100%}.stat{flex:1}}
+</style>
+</head>
+<body>
+<header><div class="wrap header"><a class="brand" href="/">NEWGEN</a><span class="portal">Panou dezvoltator</span></div></header>
+<main class="wrap">
+<div class="top"><div><div class="eyebrow">Portofoliu clienti</div><h1>Clienti</h1></div><div class="stats"><div class="stat"><span id="total">0</span> total</div><div class="stat green"><span id="assigned">0</span> atribuiti</div></div></div>
+<div class="controls"><input id="search" placeholder="Cauta dupa nume sau email"><select id="filter"><option value="all">Toti clientii</option><option value="unassigned">Neatribuiti</option><option value="assigned">Atribuiti</option></select></div>
+<section class="table"><div class="head"><span>Client</span><span>Contact</span><span>Status</span><span>Apartament</span></div><div id="rows"><div class="empty">Se incarca lista...</div></div></section>
+</main>
+<script>
+let clients=[];const rows=document.getElementById("rows"),search=document.getElementById("search"),filter=document.getElementById("filter");
+function escapeHtml(value){const div=document.createElement("div");div.textContent=value==null?"":String(value);return div.innerHTML}
+function render(){const query=search.value.toLowerCase(),status=filter.value;const visible=clients.filter(client=>(client.name+" "+client.email).toLowerCase().includes(query)&&(status==="all"||(status==="assigned"?!!client.assignment:!client.assignment)));if(!visible.length){rows.innerHTML='<div class="empty">Nu exista clienti pentru filtrul selectat.</div>';return}rows.innerHTML=visible.map(client=>'<article class="row"><div><div class="name">'+escapeHtml(client.name)+'</div><div class="sub">Din '+new Date(client.createdAt).toLocaleDateString("ro-RO")+'</div></div><div><div class="contact">'+escapeHtml(client.email)+'</div><div class="sub">'+escapeHtml(client.phone||"Fara telefon")+'</div></div><div><span class="badge '+(client.assignment?"assigned":"unassigned")+'">'+(client.assignment?"Atribuit":"Neatribuit")+'</span></div><div class="apartment">'+(client.assignment?escapeHtml(client.assignment.typeName+" · "+client.assignment.areaSqm+" m²"):"—")+'</div></article>').join("")}
+search.addEventListener("input",render);filter.addEventListener("change",render);
+fetch("/api/developer-clients").then(async response=>{const data=await response.json();if(!response.ok||!data.clients)throw new Error(data.message||"Lista nu a putut fi incarcata.");clients=data.clients;document.getElementById("total").textContent=clients.length;document.getElementById("assigned").textContent=clients.filter(client=>client.assignment).length;render()}).catch(error=>{rows.innerHTML='<div class="error"><strong>Acces indisponibil</strong><p>'+escapeHtml(error.message)+'</p><a href="/dezvoltator.html">Autentificare</a></div>'});
+</script>
+</body>
+</html>
